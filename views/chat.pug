@@ -1,0 +1,105 @@
+extends layout
+
+block style
+  style.
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font: 13px Helvetica, Arial;
+    }
+
+    form {
+      background: #000;
+      padding: 3px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+
+    form input {
+      border: 0;
+      padding: 10px;
+      width: 90%;
+      margin-right: .5%;
+    }
+
+    form button {
+      width: 9%;
+      background: rgb(130, 224, 255);
+      border: none;
+      padding: 10px;
+    }
+
+    #messages {
+      width: 80%;
+      float: left;
+
+    }
+
+    li {
+      padding: 5px 10px;
+    }
+
+    #messages li:nth-child(odd) {
+      background: #eee;
+    }
+
+    #userList {
+      width:20%;
+      float: right;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+
+    ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+block content
+  if (user)
+    p#username=user.username
+    a(href='/user/logout') Logout
+  #messageList
+    ul#messages
+      each message in messages
+        li(style=`color: ${message.color}`) #{message.user}: #{message.message}
+  #userList
+    h2 Online Users
+    ul
+  form(action="")
+    input#m(type="text" required)
+    button Send
+
+block script
+  script(src="https://code.jquery.com/jquery-1.11.1.js")
+  script(src="/scripts/socket.io-client/dist/socket.io.js")
+  script.
+    const socket = io();
+    const color = `#${(0x1000000 + (Math.random()) * 0xffffff).toString(16).substr(1, 6)}` ;
+    const user = !{JSON.stringify(user)};
+  
+    socket.on('connect', () => {
+      socket.emit('send id', user)
+    })
+
+    socket.on('send users', (users) => {
+      $('#userList ul').empty();
+      users.forEach((user) => {
+        $('#userList ul').append(`<li>${user.username}</li>`)
+      })
+    })
+
+    $('form').submit(function(e) {
+      e.preventDefault();
+      socket.emit('chat message', { color, message: $('#m').val(), user: user.username });
+      $('#m').val('')
+    })
+    socket.on('chat broadcast', (obj) => {
+      $('#messages').append(`<li style='color: ${obj.color}'>${obj.user}: ${obj.message}</li>`);
+    })
