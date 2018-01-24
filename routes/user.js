@@ -8,6 +8,7 @@ router.get('/login', (req, res) => {
 });
 
 router.post('/login', passport.authenticate('local'), (req, res) => {
+  console.log('check user if exsit');
   res.redirect('/chat');
 });
 

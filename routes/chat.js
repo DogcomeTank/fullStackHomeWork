@@ -8,6 +8,7 @@ router.get('/', (req, res, next) => {
       next(err)
     } else {
       if(req.user){
+        console.log('routes/chat.js render');
         res.render('chat', { user: req.user, messages })
       } else {
         res.redirect('/user/login')
